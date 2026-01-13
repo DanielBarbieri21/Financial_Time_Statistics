@@ -105,5 +105,15 @@ A aplicação estará disponível em `http://localhost:9002`.
 
 ---
 
-Desenvolvido por **IronDev Software**.
-Contato: dibarbieri21@gmail.com | (32) 99118-6728
+---
+
+🛠️ **Software desenvolvido por Daniel Barbieri**  
+Engenheiro de Software | Full Stack Developer  
+
+Código construído com foco em eficiência, organização, escalabilidade e boas práticas de desenvolvimento.
+
+🌐 GitHub: https://github.com/DanielBarbieri21  
+💼 LinkedIn: https://www.linkedin.com/in/daniel-barbieri-4990462a/
+
+---
+
