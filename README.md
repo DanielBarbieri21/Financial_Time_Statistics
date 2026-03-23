@@ -1,5 +1,7 @@
 # Mercado Insights - Plataforma de Análise Financeira com IA
 
+## Link do Site: https://mercadoinsights.netlify.app/dashboard
+
 Bem-vindo ao Mercado Insights, uma plataforma web moderna e interativa construída com Next.js, TypeScript e Tailwind CSS, projetada para fornecer análises aprofundadas do mercado financeiro brasileiro. A aplicação integra a API da Brapi para dados de mercado e utiliza o poder do Gemini para funcionalidades avançadas de inteligência artificial.
 
 ## ✨ Funcionalidades Principais
