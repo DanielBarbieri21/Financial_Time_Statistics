@@ -4,7 +4,7 @@ import { MetricCard } from "@/components/dashboard/MetricCard";
 import { MarketChart } from "@/components/dashboard/MarketChart";
 import { MoversTable } from "@/components/dashboard/MoversTable";
 import { Opportunities } from "@/components/dashboard/Opportunities";
-import { TrendingUp, TrendingDown, Minus, DollarSign, BarChart, Activity, Briefcase, Database, ShieldCheck, Clock } from "lucide-react";
+import { TrendingUp, TrendingDown, Minus, DollarSign, BarChart, Activity, Briefcase, Database, Clock } from "lucide-react";
 import { BrokerLinks } from "@/components/dashboard/BrokerLinks";
 import { AdCarousel } from "@/components/dashboard/AdCarousel";
 import { getQuote } from '@/services/brapi';
@@ -26,6 +26,7 @@ async function DashboardData({ search }: { search?: string }) {
   const updatedAt = new Date().toLocaleString("pt-BR", {
     dateStyle: "short",
     timeStyle: "short",
+    timeZone: "America/Sao_Paulo",
   });
 
   return (
@@ -50,12 +51,7 @@ async function DashboardData({ search }: { search?: string }) {
               Monitore cotações, histórico, oportunidades, movimentações e indicadores para apoiar decisões com dados e regras transparentes.
             </p>
           </div>
-          <div className="grid gap-3 sm:grid-cols-3 lg:min-w-[420px]">
-            <div className="rounded-md border bg-muted/40 p-4">
-              <ShieldCheck className="mb-2 h-5 w-5 text-primary" />
-              <p className="text-sm font-semibold">Sem IA paga</p>
-              <p className="mt-1 text-xs text-muted-foreground">Cálculos auditáveis</p>
-            </div>
+          <div className="grid gap-3 sm:grid-cols-2 lg:min-w-[320px]">
             <div className="rounded-md border bg-muted/40 p-4">
               <BarChart className="mb-2 h-5 w-5 text-primary" />
               <p className="text-sm font-semibold">Mercado B3</p>
