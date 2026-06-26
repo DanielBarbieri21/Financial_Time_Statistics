@@ -26,7 +26,7 @@ export async function TickerTape() {
     const allQuotes = [...quotes, ...quotes];
 
     return (
-        <div className="bg-card border-b border-t w-full overflow-hidden group">
+        <div className="bg-card border-b border-t w-full overflow-hidden group [mask-image:linear-gradient(to_right,transparent,black_1.25rem,black_calc(100%-1.25rem),transparent)]">
             <div className="flex animate-marquee group-hover:[animation-play-state:paused]">
                 {allQuotes.map((quote, index) => {
                     if (!quote) return null;
