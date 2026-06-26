@@ -8,7 +8,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Input } from "@/components/ui/input";
-import { LineChart, Moon, Sun, Search } from "lucide-react";
+import { BarChart3, Moon, Sun, Search } from "lucide-react";
 import { useTheme } from "next-themes";
 import Link from "next/link";
 import { useRouter } from 'next/navigation';
@@ -28,27 +28,32 @@ export function Header() {
   };
 
   return (
-    <header className="sticky top-0 z-30 flex h-16 items-center gap-4 border-b bg-card px-4 md:px-6">
-       <div className="flex-1">
+    <header className="sticky top-0 z-30 flex min-h-16 flex-col gap-3 border-b bg-card/95 px-4 py-3 backdrop-blur md:flex-row md:items-center md:px-6">
+      <div className="flex flex-1 items-center justify-between gap-4 md:justify-start">
+        <Link href="/" className="flex items-center gap-3 font-semibold">
+          <span className="flex h-10 w-10 items-center justify-center rounded-md bg-primary text-primary-foreground">
+            <BarChart3 className="h-5 w-5" />
+          </span>
+          <span>
+            <span className="block font-headline text-xl leading-none">Mercado Insights</span>
+            <span className="mt-1 hidden text-xs font-normal text-muted-foreground sm:block">Análise quantitativa para decisões financeiras</span>
+          </span>
+        </Link>
+      </div>
+
+      <div className="flex flex-1 justify-center">
         <form onSubmit={handleSearch} className="relative ml-auto flex-1 md:grow-0">
           <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
           <Input
             type="search"
             name="search"
             placeholder="Buscar ativo..."
-            className="w-full rounded-lg bg-background pl-8 md:w-[200px] lg:w-[320px]"
+            className="w-full rounded-lg bg-background pl-8 md:w-[260px] lg:w-[360px]"
           />
         </form>
       </div>
-
-      <div className="flex flex-1 items-center justify-center">
-        <Link href="/" className="flex items-center gap-2 font-semibold">
-            <LineChart className="h-6 w-6 text-primary" />
-            <span className="font-headline text-3xl">Mercado Insights</span>
-        </Link>
-      </div>
       
-      <div className="flex flex-1 items-center justify-end gap-4">
+      <div className="absolute right-4 top-3 flex items-center justify-end gap-4 md:static md:flex-1">
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <Button variant="outline" size="icon">

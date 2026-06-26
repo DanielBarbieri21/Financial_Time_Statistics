@@ -13,7 +13,7 @@ export default function AppLayout({
       <Header />
       <Navbar />
       <TickerTape />
-      <main className="flex flex-1 flex-col gap-4 p-4 lg:gap-6 lg:p-6 bg-muted/40">
+      <main className="flex flex-1 flex-col gap-4 bg-muted/30 p-4 lg:gap-6 lg:p-6">
         {children}
       </main>
       <footer className="border-t bg-card p-4 text-center text-sm text-muted-foreground">

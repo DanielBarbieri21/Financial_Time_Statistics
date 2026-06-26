@@ -12,7 +12,7 @@ export function Navbar() {
   const pathname = usePathname();
   
   return (
-    <nav className="border-b border-t-4 border-t-accent bg-card">
+    <nav className="border-b bg-card">
       {/* Mobile Menu */}
       <div className="md:hidden p-2 flex justify-end">
         <Sheet>
@@ -43,19 +43,20 @@ export function Navbar() {
       </div>
 
       {/* Desktop Menu */}
-      <div className="hidden md:flex justify-center items-center h-14">
-        <div className="flex items-center gap-4 text-base lg:gap-6">
+      <div className="hidden h-14 items-center justify-center md:flex">
+        <div className="flex items-center gap-1 text-sm lg:gap-2">
           {navItems.map((item) => (
             <Link
               key={item.href}
               href={item.href}
               className={cn(
-                "transition-colors hover:text-foreground/80 font-medium",
+                "flex items-center gap-2 rounded-md px-3 py-2 font-medium transition-colors hover:bg-muted hover:text-foreground",
                 pathname.startsWith(item.href)
-                  ? "text-foreground"
+                  ? "bg-primary/10 text-primary"
                   : "text-foreground/60"
               )}
             >
+              <item.icon className="h-4 w-4" />
               {item.label}
             </Link>
           ))}
