@@ -6,7 +6,7 @@ import { ThemeProvider } from '@/components/theme-provider';
 
 export const metadata: Metadata = {
   title: 'Mercado Insights',
-  description: 'Análise de mercado financeiro com IA',
+  description: 'Análise quantitativa de mercado financeiro',
 };
 
 export default function RootLayout({

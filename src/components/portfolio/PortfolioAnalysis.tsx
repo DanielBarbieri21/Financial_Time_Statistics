@@ -1,6 +1,6 @@
 "use client";
 
-import { type AnalyzePortfolioOutput } from "@/ai/flows/analyze-portfolio-flow";
+import { type AnalyzePortfolioOutput } from "@/lib/market-types";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
@@ -9,11 +9,12 @@ import { useForm, useFieldArray } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import { useState, useTransition } from "react";
-import { Loader2, PieChart, Trash2, PlusCircle, Sparkles, AlertTriangle, FileText } from "lucide-react";
+import { Loader2, PieChart, Trash2, PlusCircle, AlertTriangle, FileText, ClipboardCheck } from "lucide-react";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../ui/select";
 import { Table, TableBody, TableCell, TableHeader, TableRow, TableHead } from "../ui/table";
 import { PortfolioChart } from "./PortfolioChart";
 import { cn } from "@/lib/utils";
+import { DEFAULT_TICKER_OPTIONS } from "@/services/market-data";
 
 const assetSchema = z.object({
   ticker: z.string().min(1, { message: "O ativo é obrigatório." }),
@@ -25,21 +26,6 @@ const formSchema = z.object({
 });
 
 type FormData = z.infer<typeof formSchema>;
-
-const availableTickers = [
-    { value: "PETR4", label: "PETR4" },
-    { value: "VALE3", label: "VALE3" },
-    { value: "ITUB4", label: "ITUB4" },
-    { value: "BBDC4", label: "BBDC4" },
-    { value: "MGLU3", label: "MGLU3" },
-    { value: "BBAS3", label: "BBAS3" },
-    { value: "B3SA3", label: "B3SA3" },
-    { value: "ELET3", label: "ELET3" },
-    { value: "RENT3", label: "RENT3" },
-    { value: "WEGE3", label: "WEGE3" },
-    { value: "ABEV3", label: "ABEV3" },
-    { value: "SUZB3", label: "SUZB3" },
-];
 
 export function PortfolioAnalysis() {
     const [isPending, startTransition] = useTransition();
@@ -80,8 +66,8 @@ export function PortfolioAnalysis() {
 
             const res = await response.json();
             setResult(res);
-        } catch (e: any) {
-            setError(e.message || "Ocorreu um erro ao analisar o portfólio.");
+        } catch (e: unknown) {
+            setError(e instanceof Error ? e.message : "Ocorreu um erro ao analisar o portfólio.");
             console.error(e);
         }
     });
@@ -119,7 +105,7 @@ export function PortfolioAnalysis() {
                                                     </SelectTrigger>
                                                     </FormControl>
                                                     <SelectContent>
-                                                        {availableTickers.map(ticker => (
+                                                        {DEFAULT_TICKER_OPTIONS.map(ticker => (
                                                             <SelectItem key={ticker.value} value={ticker.value}>{ticker.label}</SelectItem>
                                                         ))}
                                                     </SelectContent>
@@ -206,7 +192,7 @@ export function PortfolioAnalysis() {
                                 Resultado da Análise
                             </CardTitle>
                              <CardDescription>
-                                Uma visão geral da sua carteira baseada em dados simulados por IA.
+                                Uma visão geral da sua carteira com cotações reais e regras quantitativas.
                             </CardDescription>
                         </CardHeader>
                         <CardContent className="space-y-8">
@@ -220,13 +206,15 @@ export function PortfolioAnalysis() {
                                     </div>
                                     <Card className="bg-amber-50 dark:bg-amber-950/20 border-amber-200 dark:border-amber-900">
                                         <CardHeader className="flex flex-row items-center gap-3 space-y-0">
-                                            <Sparkles className="w-5 h-5 text-amber-600 dark:text-amber-400" />
-                                            <CardTitle className="text-amber-900 dark:text-amber-200 text-lg font-headline">Recomendação da IA</CardTitle>
+                                            <ClipboardCheck className="w-5 h-5 text-amber-600 dark:text-amber-400" />
+                                            <CardTitle className="text-amber-900 dark:text-amber-200 text-lg font-headline">Diagnóstico Quantitativo</CardTitle>
                                         </CardHeader>
                                         <CardContent>
-                                            <p className="text-sm text-amber-800 dark:text-amber-300">
-                                                {result.recommendation}
-                                            </p>
+                                            <ul className="list-disc space-y-1 pl-4 text-sm text-amber-800 dark:text-amber-300">
+                                                {(result.diagnostics || [result.recommendation]).map((item) => (
+                                                    <li key={item}>{item}</li>
+                                                ))}
+                                            </ul>
                                         </CardContent>
                                     </Card>
                                 </div>
@@ -243,7 +231,7 @@ export function PortfolioAnalysis() {
                                             <TableRow>
                                                 <TableHead>Ativo</TableHead>
                                                 <TableHead className="text-right">Quantidade</TableHead>
-                                                <TableHead className="text-right">Preço (Simulado)</TableHead>
+                                                <TableHead className="text-right">Preço Atual</TableHead>
                                                 <TableHead className="text-right">Valor Total</TableHead>
                                                 <TableHead className="text-right">Alocação</TableHead>
                                             </TableRow>
@@ -263,7 +251,7 @@ export function PortfolioAnalysis() {
                                 </div>
                                  <p className="text-xs text-muted-foreground mt-2 flex items-center gap-1.5">
                                     <AlertTriangle className="w-3.5 h-3.5" />
-                                    Os preços dos ativos são fictícios e gerados por IA para fins de simulação.
+                                    Os preços vêm da API de mercado configurada e podem ter atraso conforme o provedor.
                                 </p>
                             </div>
                         </CardContent>

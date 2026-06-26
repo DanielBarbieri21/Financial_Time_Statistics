@@ -1,121 +1,82 @@
-# Mercado Insights - Plataforma de Análise Financeira com IA
+# Mercado Insights - Plataforma de Análise Financeira Quantitativa
 
-## Link do Site: https://mercadoinsights.netlify.app/dashboard
+## Link do Site
 
-Bem-vindo ao Mercado Insights, uma plataforma web moderna e interativa construída com Next.js, TypeScript e Tailwind CSS, projetada para fornecer análises aprofundadas do mercado financeiro brasileiro. A aplicação integra a API da Brapi para dados de mercado e utiliza o poder do Gemini para funcionalidades avançadas de inteligência artificial.
+https://mercadoinsights.netlify.app/dashboard
 
-## ✨ Funcionalidades Principais
+Mercado Insights é uma plataforma web construída com Next.js, TypeScript e Tailwind CSS para análise do mercado financeiro brasileiro com dados de APIs e cálculos determinísticos, sem dependência de modelos de IA pagos.
 
-A plataforma oferece um conjunto robusto de ferramentas para investidores de todos os níveis:
+## Funcionalidades Principais
 
-### 1. **Dashboard Dinâmico**
-- **Cotações em Tempo Real**: Uma barra de cotações (`TickerTape`) exibe os principais ativos do mercado com atualizações contínuas.
-- **Busca de Ativos**: Pesquise qualquer ativo listado para atualizar dinamicamente todo o dashboard.
-- **Métricas Essenciais**: Cards informativos com preço, volume, variação diária e valor de mercado do ativo selecionado.
-- **Gráfico Comparativo**: Visualize e compare o desempenho histórico de múltiplos ativos simultaneamente em um gráfico interativo.
-- **Principais Movimentações**: Tabelas que destacam as maiores altas e baixas do dia.
-- **Oportunidades com IA**: Sugestões de investimento baseadas em análises de IA.
+### 1. Dashboard Dinâmico
+- Cotações de ativos via Brapi.
+- Busca de ativos para atualizar métricas do dashboard.
+- Cards com preço, volume, variação diária e valor de mercado.
+- Gráfico histórico comparativo com dados reais.
+- Maiores altas e baixas entre os ativos monitorados.
+- Oportunidades quantitativas por score de momentum, liquidez, valuation, dividendos e risco.
 
-### 2. **Análise de Portfólio com IA**
-- **Monte sua Carteira**: Adicione seus ativos e as respectivas quantidades.
-- **Análise Inteligente**: Receba uma análise completa da sua carteira, com preços simulados, valor total, alocação percentual e um gráfico de pizza para visualização.
-- **Recomendação da IA**: Um insight gerado por IA oferece uma breve recomendação sobre a diversificação e o perfil de risco do seu portfólio.
+### 2. Análise de Portfólio
+- Carteira com ativos e quantidades.
+- Preço atual, valor total, alocação, setor e tipo de ativo.
+- Diagnóstico por regras claras de concentração, exposição e risco.
 
-### 3. **Simulador de Renda Fixa**
-- **Projeção de Rentabilidade**: Calcule a evolução do seu patrimônio em investimentos de renda fixa, informando valor inicial, aportes mensais, taxa de juros e período.
-- **Visualização Gráfica**: Um gráfico de barras mostra a projeção do crescimento do seu investimento ao longo do tempo.
+### 3. Simulador de Renda Fixa
+- Projeção com juros compostos.
+- Taxa manual ou indicadores públicos do Banco Central, como Selic, CDI e IPCA.
 
-### 4. **Analisador de Notícias com IA**
-- **Resumo e Sentimento**: Cole o texto de uma notícia financeira para que a IA gere um resumo conciso e classifique o sentimento como "positivo", "negativo" ou "neutro".
+### 4. Triagem de Notícias
+- Classificação local por termos positivos e negativos.
+- Sem envio de texto para provedores de IA.
 
-### 5. **Motor de Backtesting com IA**
-- **Teste Estratégias**: Simule o desempenho de estratégias de negociação (seja uma estratégia personalizada ou um modelo pronto) em dados históricos simulados.
-- **Relatório Completo**: Obtenha um relatório detalhado com resultado financeiro, balanço final, taxa de sucesso e um histórico de todas as transações executadas pela estratégia.
+### 5. Backtesting
+- Estratégias fixas executadas sobre histórico real de preços.
+- IFR, cruzamento de médias móveis e rompimento de resistência.
+- Resultado financeiro, saldo final, taxa de sucesso e histórico de transações.
 
-### 6. **Ferramentas Adicionais**
-- **Gerenciador de Alertas**: Crie alertas de preço para ser notificado quando um ativo atingir um valor específico.
-- **Simulador de Empréstimos**: Calcule parcelas, juros e o custo total de financiamentos.
-- **Página "Sobre"**: Uma seção dedicada a apresentar o desenvolvedor do projeto.
+### 6. Alertas
+- Alertas de preço persistidos no navegador.
+- Validação contra cotação atual da API.
 
----
+## Tecnologias
 
-## 🚀 Tecnologias Utilizadas
+- Next.js 15, React 18 e TypeScript.
+- Tailwind CSS e ShadCN UI.
+- Recharts.
+- Brapi para dados de mercado.
+- Banco Central do Brasil para indicadores macroeconômicos.
 
-- **Frontend**: Next.js 15 (App Router), React 18, TypeScript
-- **Estilização**: Tailwind CSS, ShadCN UI para componentes
-- **Gráficos**: Recharts
-- **Inteligência Artificial**: Google Gemini via Genkit
-- **Dados de Mercado**: Brapi API
-- **Ícones**: Lucide React
-
----
-
-## ⚙️ Configuração e Execução
-
-Siga os passos abaixo para executar o projeto em seu ambiente de desenvolvimento.
+## Configuração
 
 ### Pré-requisitos
 
-- Node.js (versão 20 ou superior)
-- `pnpm` como gerenciador de pacotes
+- Node.js 20 ou superior.
+- npm.
 
-### 1. Clonar o Repositório
+### Variáveis de ambiente
 
-```bash
-git clone https://github.com/DanielBarbieri21/Painel_Financeiro_IA.git
-cd mercado-insights
+Crie um arquivo `.env` na raiz do projeto:
+
+```env
+BRAPI_API_KEY=sua-chave-de-api-aqui
 ```
 
-### 2. Instalar as Dependências
-
-Use `pnpm` para instalar todos os pacotes necessários:
+### Execução
 
 ```bash
-pnpm install
+npm install
+npm run dev
 ```
 
-### 3. Configurar as Variáveis de Ambiente
+A aplicação roda em `http://localhost:9002`.
 
-Para que a aplicação possa buscar os dados de mercado, você precisa de uma chave de API da Brapi.
+## Scripts
 
-1.  Acesse [brapi.dev](https://brapi.dev/), crie uma conta gratuita e obtenha seu token de API.
-2.  Crie um arquivo chamado `.env` na raiz do projeto.
-3.  Adicione sua chave de API a este arquivo:
+- `npm run dev`: inicia o servidor de desenvolvimento.
+- `npm run build`: compila a aplicação para produção.
+- `npm run start`: inicia o servidor de produção após o build.
+- `npm run typecheck`: valida TypeScript.
 
-    ```env
-    BRAPI_API_KEY=sua-chave-de-api-aqui
-    ```
+## Observação
 
-### 4. Rodar o Projeto
-
-Com tudo configurado, inicie o servidor de desenvolvimento:
-
-```bash
-pnpm dev
-```
-
-A aplicação estará disponível em `http://localhost:9002`.
-
----
-
-## 📜 Scripts Disponíveis
-
-- `pnpm dev`: Inicia o servidor de desenvolvimento com Next.js e Turbopack.
-- `pnpm build`: Compila a aplicação para produção.
-- `pnpm start`: Inicia o servidor de produção após o build.
-- `pnpm lint`: Executa o linter para análise de código.
-
----
-
----
-
-🛠️ **Software desenvolvido por Daniel Barbieri**  
-Engenheiro de Software | Full Stack Developer  
-
-Código construído com foco em eficiência, organização, escalabilidade e boas práticas de desenvolvimento.
-
-🌐 GitHub: https://github.com/DanielBarbieri21  
-💼 LinkedIn: https://www.linkedin.com/in/daniel-barbieri-4990462a/
-
----
-
+As análises são informativas e baseadas em regras quantitativas simples. Elas não são recomendação individualizada de investimento.

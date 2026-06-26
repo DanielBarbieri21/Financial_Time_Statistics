@@ -1,18 +1,17 @@
 "use client";
 
-import { backtestStrategy, type BacktestStrategyOutput } from "@/ai/flows/backtesting-flow";
+import { backtestStrategy, type BacktestStrategyId } from "@/services/backtesting";
+import type { BacktestStrategyOutput } from "@/lib/market-types";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
-import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import { useState, useTransition } from "react";
 import { Loader2, History } from "lucide-react";
 import { Popover, PopoverContent, PopoverTrigger } from "../ui/popover";
-import { CalendarIcon, FileText, Wand2 } from "lucide-react";
+import { CalendarIcon, FileText, LineChart } from "lucide-react";
 import { Calendar } from "../ui/calendar";
 import { cn } from "@/lib/utils";
 import { format } from "date-fns";
@@ -21,11 +20,10 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from ".
 import { Table, TableBody, TableCell, TableHeader, TableRow, TableHead } from "../ui/table";
 import { Badge } from "../ui/badge";
 import { BacktestResultsChart } from "./BacktestResultsChart";
+import { DEFAULT_TICKER_OPTIONS } from "@/services/market-data";
 
 const formSchema = z.object({
-  strategy: z.string().min(10, {
-    message: "A estratégia deve ter pelo menos 10 caracteres.",
-  }),
+  strategy: z.enum(["rsi", "moving-average-cross", "breakout"]),
   ticker: z.string().min(3, {
     message: "O ativo deve ser selecionado.",
   }),
@@ -42,10 +40,19 @@ const formSchema = z.object({
 type FormData = z.infer<typeof formSchema>;
 
 const predefinedStrategies = {
-    "rsi": "Comprar o ativo quando seu Índice de Força Relativa (IFR) de 14 dias cair abaixo de 30 (sobrevenda) e vender quando o IFR ultrapassar 70 (sobrecompra).",
-    "moving-average-cross": "Comprar o ativo quando a média móvel curta de 9 dias cruzar para cima da média móvel longa de 21 dias. Vender quando a média curta cruzar para baixo da média longa.",
-    "breakout": "Comprar o ativo quando seu preço ultrapassar o nível de resistência estabelecido nos últimos 20 dias. Vender se o preço cair 5% abaixo do ponto de compra (stop-loss).",
-};
+    rsi: {
+        label: "IFR (Sobrevenda/Sobrecompra)",
+        description: "Compra quando o IFR de 14 períodos cai abaixo de 30 e vende quando ultrapassa 70.",
+    },
+    "moving-average-cross": {
+        label: "Cruzamento de Médias Móveis",
+        description: "Compra quando a média de 9 períodos cruza para cima da média de 21 e vende no cruzamento inverso.",
+    },
+    breakout: {
+        label: "Rompimento de Resistência",
+        description: "Compra quando o preço rompe a máxima dos últimos 20 pregões e vende com stop de 5%.",
+    },
+} satisfies Record<BacktestStrategyId, { label: string; description: string }>;
 
 export function BacktestingEngine() {
     const [isPending, startTransition] = useTransition();
@@ -55,7 +62,7 @@ export function BacktestingEngine() {
   const form = useForm<FormData>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      strategy: "",
+      strategy: "moving-average-cross",
       ticker: "PETR4",
       dateRange: {
         from: new Date(new Date().setFullYear(new Date().getFullYear() - 1)),
@@ -70,7 +77,7 @@ export function BacktestingEngine() {
     startTransition(async () => {
         try {
             const input = {
-                strategy: values.strategy,
+                strategy: values.strategy as BacktestStrategyId,
                 ticker: values.ticker,
                 startDate: values.dateRange.from.toISOString().split('T')[0],
                 endDate: values.dateRange.to.toISOString().split('T')[0],
@@ -84,9 +91,7 @@ export function BacktestingEngine() {
     });
   }
 
-  const handleStrategySelect = (value: keyof typeof predefinedStrategies) => {
-    form.setValue("strategy", predefinedStrategies[value]);
-  };
+  const selectedStrategy = form.watch("strategy") as BacktestStrategyId;
 
   return (
     <div className="w-full max-w-4xl space-y-8">
@@ -99,42 +104,38 @@ export function BacktestingEngine() {
                         Motor de Backtesting
                     </CardTitle>
                     <CardDescription>
-                    Teste suas estratégias de negociação com dados simulados por IA ou use um modelo pronto.
+                    Teste estratégias objetivas com histórico real de preços.
                     </CardDescription>
                 </CardHeader>
                 <CardContent className="grid md:grid-cols-2 gap-6">
                     <div className="space-y-4">
-                        <FormItem>
-                            <FormLabel className="flex items-center gap-2"><Wand2 className="w-4 h-4"/> Modelos de Estratégia (Opcional)</FormLabel>
-                            <Select onValueChange={handleStrategySelect}>
-                                <SelectTrigger>
-                                    <SelectValue placeholder="Selecione uma estratégia pronta..." />
-                                </SelectTrigger>
-                                <SelectContent>
-                                    <SelectItem value="rsi">IFR (Sobrevenda/Sobrecompra)</SelectItem>
-                                    <SelectItem value="moving-average-cross">Cruzamento de Médias Móveis</SelectItem>
-                                    <SelectItem value="breakout">Rompimento de Resistência</SelectItem>
-                                </SelectContent>
-                            </Select>
-                        </FormItem>
-
                         <FormField
                         control={form.control}
                         name="strategy"
                         render={({ field }) => (
                             <FormItem>
-                            <FormLabel>Estratégia de Negociação</FormLabel>
-                            <FormControl>
-                                <Textarea
-                                placeholder="Ex: Comprar quando o IFR de 14 dias for menor que 30 e vender quando for maior que 70."
-                                className="resize-y min-h-[100px]"
-                                {...field}
-                                />
-                            </FormControl>
+                            <FormLabel className="flex items-center gap-2"><LineChart className="w-4 h-4"/> Estratégia</FormLabel>
+                            <Select onValueChange={field.onChange} value={field.value}>
+                                <FormControl>
+                                    <SelectTrigger>
+                                        <SelectValue placeholder="Selecione uma estratégia" />
+                                    </SelectTrigger>
+                                </FormControl>
+                                <SelectContent>
+                                    {Object.entries(predefinedStrategies).map(([value, item]) => (
+                                        <SelectItem key={value} value={value}>{item.label}</SelectItem>
+                                    ))}
+                                </SelectContent>
+                            </Select>
                             <FormMessage />
                             </FormItem>
                         )}
                         />
+                        <Card className="bg-muted/50">
+                            <CardContent className="pt-6">
+                                <p className="text-sm text-muted-foreground">{predefinedStrategies[selectedStrategy].description}</p>
+                            </CardContent>
+                        </Card>
                     </div>
                     <div className="space-y-4">
                         <FormField
@@ -150,11 +151,9 @@ export function BacktestingEngine() {
                                     </SelectTrigger>
                                     </FormControl>
                                     <SelectContent>
-                                        <SelectItem value="PETR4">PETR4 (Petrobras)</SelectItem>
-                                        <SelectItem value="VALE3">VALE3 (Vale)</SelectItem>
-                                        <SelectItem value="ITUB4">ITUB4 (Itaú Unibanco)</SelectItem>
-                                        <SelectItem value="BBDC4">BBDC4 (Bradesco)</SelectItem>
-                                        <SelectItem value="MGLU3">MGLU3 (Magazine Luiza)</SelectItem>
+                                        {DEFAULT_TICKER_OPTIONS.map((ticker) => (
+                                            <SelectItem key={ticker.value} value={ticker.value}>{ticker.label}</SelectItem>
+                                        ))}
                                     </SelectContent>
                                 </Select>
                                 <FormMessage />
@@ -222,7 +221,7 @@ export function BacktestingEngine() {
         {isPending && (
             <div className="flex items-center justify-center p-8">
                 <Loader2 className="w-8 h-8 animate-spin text-primary" />
-                <p className="ml-4 text-muted-foreground">Simulando, isso pode levar um momento...</p>
+                <p className="ml-4 text-muted-foreground">Executando backtest com histórico real...</p>
             </div>
         )}
 

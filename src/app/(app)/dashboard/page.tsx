@@ -74,16 +74,18 @@ async function DashboardData({ search }: { search?: string }) {
 }
 
 
-export default function DashboardPage({
+export default async function DashboardPage({
   searchParams,
 }: {
-  searchParams?: {
+  searchParams?: Promise<{
     search?: string;
-  };
+  }>;
 }) {
+  const params = await searchParams;
+
   return (
     <Suspense fallback={<DashboardSkeleton />}>
-      <DashboardData search={searchParams?.search} />
+      <DashboardData search={params?.search} />
     </Suspense>
   );
 }

@@ -7,10 +7,12 @@ import { Input } from "@/components/ui/input";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
-import { useState, useTransition } from "react";
-import { Loader2, Bell, Trash2, PlusCircle } from "lucide-react";
+import { useEffect, useState, useTransition } from "react";
+import { Loader2, Bell, Trash2, PlusCircle, CheckCircle2, AlertTriangle } from "lucide-react";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../ui/select";
 import { Table, TableBody, TableCell, TableHeader, TableRow, TableHead } from "../ui/table";
+import { DEFAULT_TICKER_OPTIONS } from "@/services/market-data";
+import type { MarketQuote } from "@/lib/market-types";
 
 const formSchema = z.object({
   ticker: z.string().min(1, { message: "O ativo deve ser selecionado." }),
@@ -20,7 +22,12 @@ const formSchema = z.object({
 
 type FormData = z.infer<typeof formSchema>;
 
-type Alert = FormData & { id: string };
+type Alert = FormData & {
+    id: string;
+    createdAt: string;
+    currentPrice?: number;
+    status: "triggered" | "watching" | "unavailable";
+};
 
 const conditionLabels: Record<FormData["condition"], string> = {
     "price-above": "Preço acima de",
@@ -30,6 +37,7 @@ const conditionLabels: Record<FormData["condition"], string> = {
 export function AlertsManager() {
     const [isPending, startTransition] = useTransition();
     const [alerts, setAlerts] = useState<Alert[]>([]);
+    const [error, setError] = useState<string | null>(null);
     
     const form = useForm<FormData>({
         resolver: zodResolver(formSchema),
@@ -40,11 +48,70 @@ export function AlertsManager() {
         },
     });
 
+    useEffect(() => {
+        const storedAlerts = window.localStorage.getItem("mercado-insights-alerts");
+
+        if (storedAlerts) {
+            setAlerts(JSON.parse(storedAlerts));
+        }
+    }, []);
+
+    useEffect(() => {
+        window.localStorage.setItem("mercado-insights-alerts", JSON.stringify(alerts));
+    }, [alerts]);
+
+    function getAlertStatus(values: FormData, quote?: MarketQuote): Alert["status"] {
+        if (!quote) return "unavailable";
+
+        if (values.condition === "price-above") {
+            return quote.price >= values.value ? "triggered" : "watching";
+        }
+
+        return quote.price <= values.value ? "triggered" : "watching";
+    }
+
     function onSubmit(values: FormData) {
-        startTransition(() => {
-            const newAlert: Alert = { ...values, id: crypto.randomUUID() };
-            setAlerts(prev => [...prev, newAlert]);
-            form.reset();
+        setError(null);
+        startTransition(async () => {
+            try {
+                const response = await fetch(`/api/quote/${values.ticker}`);
+                const quote: MarketQuote | undefined = response.ok ? await response.json() : undefined;
+                const newAlert: Alert = {
+                    ...values,
+                    id: crypto.randomUUID(),
+                    createdAt: new Date().toISOString(),
+                    currentPrice: quote?.price,
+                    status: getAlertStatus(values, quote),
+                };
+
+                setAlerts(prev => [...prev, newAlert]);
+                form.reset();
+            } catch (submitError) {
+                console.error(submitError);
+                setError("Não foi possível validar a cotação atual do alerta.");
+            }
+        });
+    }
+
+    async function refreshAlert(alert: Alert) {
+        try {
+            const response = await fetch(`/api/quote/${alert.ticker}`);
+            const quote: MarketQuote | undefined = response.ok ? await response.json() : undefined;
+
+            setAlerts((prev) => prev.map((item) => (
+                item.id === alert.id
+                    ? { ...item, currentPrice: quote?.price, status: getAlertStatus(item, quote) }
+                    : item
+            )));
+        } catch (refreshError) {
+            console.error(refreshError);
+            setAlerts((prev) => prev.map((item) => item.id === alert.id ? { ...item, status: "unavailable" } : item));
+        }
+    }
+
+    function refreshAllAlerts() {
+        startTransition(async () => {
+            await Promise.all(alerts.map(refreshAlert));
         });
     }
 
@@ -80,18 +147,9 @@ export function AlertsManager() {
                                                 </SelectTrigger>
                                             </FormControl>
                                             <SelectContent>
-                                                <SelectItem value="PETR4">PETR4 (Petrobras)</SelectItem>
-                                                <SelectItem value="VALE3">VALE3 (Vale)</SelectItem>
-                                                <SelectItem value="ITUB4">ITUB4 (Itaú Unibanco)</SelectItem>
-                                                <SelectItem value="BBDC4">BBDC4 (Bradesco)</SelectItem>
-                                                <SelectItem value="MGLU3">MGLU3 (Magazine Luiza)</SelectItem>
-                                                <SelectItem value="BBAS3">BBAS3 (Banco do Brasil)</SelectItem>
-                                                <SelectItem value="B3SA3">B3SA3 (B3)</SelectItem>
-                                                <SelectItem value="ELET3">ELET3 (Eletrobras)</SelectItem>
-                                                <SelectItem value="RENT3">RENT3 (Localiza)</SelectItem>
-                                                <SelectItem value="WEGE3">WEGE3 (WEG)</SelectItem>
-                                                <SelectItem value="ABEV3">ABEV3 (Ambev)</SelectItem>
-                                                <SelectItem value="SUZB3">SUZB3 (Suzano)</SelectItem>
+                                                {DEFAULT_TICKER_OPTIONS.map((ticker) => (
+                                                    <SelectItem key={ticker.value} value={ticker.value}>{ticker.label}</SelectItem>
+                                                ))}
                                             </SelectContent>
                                         </Select>
                                         <FormMessage />
@@ -138,6 +196,7 @@ export function AlertsManager() {
                                     <span className="hidden sm:inline ml-2">Adicionar</span>
                                 </Button>
                             </div>
+                            {error && <p className="text-sm text-destructive md:col-span-3">{error}</p>}
                         </CardContent>
                     </form>
                 </Form>
@@ -145,7 +204,12 @@ export function AlertsManager() {
 
             <Card>
                 <CardHeader>
-                    <CardTitle className="font-headline text-xl">Alertas Ativos</CardTitle>
+                    <div className="flex items-center justify-between gap-3">
+                        <CardTitle className="font-headline text-xl">Alertas Ativos</CardTitle>
+                        <Button type="button" variant="outline" size="sm" onClick={refreshAllAlerts} disabled={isPending || alerts.length === 0}>
+                            {isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : "Atualizar Cotações"}
+                        </Button>
+                    </div>
                 </CardHeader>
                 <CardContent>
                     {alerts.length > 0 ? (
@@ -154,7 +218,9 @@ export function AlertsManager() {
                                 <TableRow>
                                     <TableHead>Ativo</TableHead>
                                     <TableHead>Condição</TableHead>
+                                    <TableHead className="text-right">Preço Atual</TableHead>
                                     <TableHead className="text-right">Valor</TableHead>
+                                    <TableHead className="text-right">Status</TableHead>
                                     <TableHead className="text-right">Ações</TableHead>
                                 </TableRow>
                             </TableHeader>
@@ -163,7 +229,17 @@ export function AlertsManager() {
                                     <TableRow key={alert.id}>
                                         <TableCell className="font-medium">{alert.ticker}</TableCell>
                                         <TableCell>{conditionLabels[alert.condition]}</TableCell>
+                                        <TableCell className="text-right">
+                                            {typeof alert.currentPrice === "number"
+                                                ? alert.currentPrice.toLocaleString("pt-BR", { style: "currency", currency: "BRL" })
+                                                : "-"}
+                                        </TableCell>
                                         <TableCell className="text-right">{alert.value.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}</TableCell>
+                                        <TableCell className="text-right">
+                                            {alert.status === "triggered" && <span className="inline-flex items-center gap-1 text-success"><CheckCircle2 className="h-4 w-4" /> Acionado</span>}
+                                            {alert.status === "watching" && <span className="text-muted-foreground">Monitorando</span>}
+                                            {alert.status === "unavailable" && <span className="inline-flex items-center gap-1 text-destructive"><AlertTriangle className="h-4 w-4" /> Indisponível</span>}
+                                        </TableCell>
                                         <TableCell className="text-right">
                                             <Button variant="ghost" size="icon" onClick={() => deleteAlert(alert.id)}>
                                                 <Trash2 className="h-4 w-4 text-destructive" />

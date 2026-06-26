@@ -21,10 +21,19 @@ import { Input } from "@/components/ui/input";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { TrendingUp, Percent, Calendar, DollarSign, PiggyBank } from "lucide-react";
 import { Bar, BarChart, CartesianGrid, ResponsiveContainer, XAxis, YAxis } from "recharts";
 import { ChartContainer, ChartTooltip, ChartTooltipContent } from "../ui/chart";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../ui/select";
+
+type MacroIndicator = {
+  code: "selic" | "cdi" | "ipca";
+  name: string;
+  value: number;
+  date: string;
+  annualizedRate: number;
+};
 
 const formSchema = z.object({
   initialAmount: z.coerce
@@ -53,6 +62,8 @@ type SimulationResult = {
 
 export function InvestmentSimulator() {
   const [result, setResult] = useState<SimulationResult | null>(null);
+  const [indicators, setIndicators] = useState<MacroIndicator[]>([]);
+  const [selectedRate, setSelectedRate] = useState("manual");
 
   const form = useForm<FormData>({
     resolver: zodResolver(formSchema),
@@ -63,6 +74,34 @@ export function InvestmentSimulator() {
       period: 120, // 10 years
     },
   });
+
+  useEffect(() => {
+    async function loadIndicators() {
+      try {
+        const response = await fetch("/api/macroeconomics");
+
+        if (!response.ok) return;
+
+        setIndicators(await response.json());
+      } catch (error) {
+        console.error("Erro ao carregar indicadores do Banco Central:", error);
+      }
+    }
+
+    loadIndicators();
+  }, []);
+
+  function handleRateSourceChange(value: string) {
+    setSelectedRate(value);
+
+    if (value === "manual") return;
+
+    const indicator = indicators.find((item) => item.code === value);
+
+    if (indicator) {
+      form.setValue("interestRate", Number(indicator.annualizedRate.toFixed(2)));
+    }
+  }
 
   function onSubmit(values: FormData) {
     const monthlyRate = values.interestRate / 100 / 12;
@@ -105,10 +144,10 @@ export function InvestmentSimulator() {
                 Simulador de Investimentos
               </CardTitle>
               <CardDescription>
-                Projete a rentabilidade dos seus investimentos em Renda Fixa com juros compostos.
+                Projete renda fixa com juros compostos e indicadores públicos do Banco Central.
               </CardDescription>
             </CardHeader>
-            <CardContent className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
+            <CardContent className="grid md:grid-cols-2 lg:grid-cols-5 gap-6">
               <FormField
                 control={form.control}
                 name="initialAmount"
@@ -141,6 +180,19 @@ export function InvestmentSimulator() {
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Rentabilidade Anual (%)</FormLabel>
+                    <Select value={selectedRate} onValueChange={handleRateSourceChange}>
+                      <SelectTrigger className="mb-2">
+                        <SelectValue placeholder="Fonte da taxa" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="manual">Taxa manual</SelectItem>
+                        {indicators.map((indicator) => (
+                          <SelectItem key={indicator.code} value={indicator.code}>
+                            {indicator.name}: {indicator.annualizedRate.toFixed(2)}%
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
                     <FormControl>
                       <Input type="number" placeholder="Ex: 10" {...field} />
                     </FormControl>

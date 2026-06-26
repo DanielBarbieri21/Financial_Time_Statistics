@@ -15,27 +15,17 @@ import {
 } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "../ui/badge";
+import { getMarketMovers } from "@/services/brapi";
+import type { MarketQuote } from "@/lib/market-types";
 
-const gainers = [
-  { ticker: "XYZ", price: "R$150,75", change: "+5.20%", volume: "12.5M" },
-  { ticker: "ABC", price: "R$34,20", change: "+4.80%", volume: "8.2M" },
-  { ticker: "LMN", price: "R$210,00", change: "+3.50%", volume: "20.1M" },
-  { ticker: "PQR", price: "R$88,50", change: "+3.10%", volume: "5.6M" },
-];
+export async function MoversTable() {
+  const { gainers, losers } = await getMarketMovers();
 
-const losers = [
-  { ticker: "DEF", price: "R$45,30", change: "-6.10%", volume: "15.3M" },
-  { ticker: "GHI", price: "R$12,80", change: "-5.50%", volume: "9.8M" },
-  { ticker: "JKL", price: "R$155,20", change: "-4.20%", volume: "11.2M" },
-  { ticker: "MNO", price: "R$72,40", change: "-3.80%", volume: "7.1M" },
-];
-
-export function MoversTable() {
   return (
     <Card>
       <CardHeader>
         <CardTitle className="font-headline">Principais Movimentações</CardTitle>
-        <CardDescription>Maiores variações do mercado hoje.</CardDescription>
+        <CardDescription>Maiores variações entre os ativos monitorados.</CardDescription>
       </CardHeader>
       <CardContent>
         <Tabs defaultValue="gainers">
@@ -55,30 +45,33 @@ export function MoversTable() {
   );
 }
 
+function MoversList({ movers, type }: { movers: MarketQuote[]; type: "gainer" | "loser" }) {
+  if (movers.length === 0) {
+    return <p className="py-6 text-center text-sm text-muted-foreground">Dados indisponíveis no momento.</p>;
+  }
 
-function MoversList({ movers, type }: { movers: typeof gainers, type: 'gainer' | 'loser' }) {
-    return (
-        <Table>
-            <TableHeader>
-                <TableRow>
-                <TableHead>Ativo</TableHead>
-                <TableHead className="text-right">Preço</TableHead>
-                <TableHead className="text-right">Variação</TableHead>
-                </TableRow>
-            </TableHeader>
-            <TableBody>
-                {movers.map((mover) => (
-                    <TableRow key={mover.ticker}>
-                        <TableCell className="font-medium">{mover.ticker}</TableCell>
-                        <TableCell className="text-right">{mover.price}</TableCell>
-                        <TableCell className="text-right">
-                            <Badge variant={type === 'gainer' ? 'success' : 'destructive'} className="text-xs">
-                                {mover.change}
-                            </Badge>
-                        </TableCell>
-                    </TableRow>
-                ))}
-            </TableBody>
-        </Table>
-    )
+  return (
+    <Table>
+      <TableHeader>
+        <TableRow>
+          <TableHead>Ativo</TableHead>
+          <TableHead className="text-right">Preço</TableHead>
+          <TableHead className="text-right">Variação</TableHead>
+        </TableRow>
+      </TableHeader>
+      <TableBody>
+        {movers.map((mover) => (
+          <TableRow key={mover.symbol}>
+            <TableCell className="font-medium">{mover.symbol}</TableCell>
+            <TableCell className="text-right">{mover.price.toLocaleString("pt-BR", { style: "currency", currency: "BRL" })}</TableCell>
+            <TableCell className="text-right">
+              <Badge variant={type === "gainer" ? "success" : "destructive"} className="text-xs">
+                {mover.change.toFixed(2)}%
+              </Badge>
+            </TableCell>
+          </TableRow>
+        ))}
+      </TableBody>
+    </Table>
+  );
 }

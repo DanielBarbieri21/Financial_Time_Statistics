@@ -1,6 +1,6 @@
 "use client";
 
-import type { BacktestStrategyOutput } from "@/ai/flows/backtesting-flow";
+import type { BacktestStrategyOutput } from "@/lib/market-types";
 import {
   ChartContainer,
   ChartTooltip,
