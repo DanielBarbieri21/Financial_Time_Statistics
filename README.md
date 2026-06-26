@@ -1,57 +1,64 @@
-# Mercado Insights - Plataforma de Análise Financeira Quantitativa
+# Mercado Insights
 
-## Link do Site
+Plataforma web para análise quantitativa do mercado financeiro brasileiro, construída com Next.js, TypeScript e Tailwind CSS.
 
-https://mercadoinsights.netlify.app/dashboard
+[Acessar aplicação](https://mercadoinsights.netlify.app/dashboard)
 
-Mercado Insights é uma plataforma web construída com Next.js, TypeScript e Tailwind CSS para análise do mercado financeiro brasileiro com dados de APIs e cálculos determinísticos, sem dependência de modelos de IA pagos.
+## Visão Geral
 
-## Funcionalidades Principais
+O Mercado Insights centraliza cotações, gráficos, simulações, alertas e análises de carteira em uma interface única. A proposta é apoiar decisões financeiras com dados estruturados, regras transparentes e uma experiência simples para acompanhar ativos da B3.
 
-### 1. Dashboard Dinâmico
-- Cotações de ativos via Brapi.
-- Busca de ativos para atualizar métricas do dashboard.
-- Cards com preço, volume, variação diária e valor de mercado.
-- Gráfico histórico comparativo com dados reais.
-- Maiores altas e baixas entre os ativos monitorados.
-- Oportunidades quantitativas por score de momentum, liquidez, valuation, dividendos e risco.
+O projeto combina integrações com APIs públicas e privadas, cálculos determinísticos e componentes visuais responsivos para transformar dados de mercado em informações mais fáceis de comparar e interpretar.
 
-### 2. Análise de Portfólio
-- Carteira com ativos e quantidades.
-- Preço atual, valor total, alocação, setor e tipo de ativo.
-- Diagnóstico por regras claras de concentração, exposição e risco.
+## Principais Recursos
 
-### 3. Simulador de Renda Fixa
-- Projeção com juros compostos.
-- Taxa manual ou indicadores públicos do Banco Central, como Selic, CDI e IPCA.
+| Área | O que faz |
+| --- | --- |
+| Dashboard | Exibe preço, volume, variação diária, market cap, gráfico histórico, maiores movimentos e oportunidades quantitativas. |
+| Busca de ativos | Permite consultar ativos da B3 e atualizar os indicadores principais do painel. |
+| Análise de portfólio | Calcula valor total, alocação, exposição por ativo, setor e tipo, além de diagnóstico por regras de risco. |
+| Renda fixa | Simula projeções com juros compostos usando taxa manual ou indicadores como Selic, CDI e IPCA. |
+| Notícias | Classifica notícias por termos positivos e negativos, sem envio de conteúdo para serviços externos de IA. |
+| Backtesting | Testa estratégias com IFR, cruzamento de médias móveis e rompimento de resistência sobre histórico de preços. |
+| Alertas | Cria alertas de preço persistidos no navegador e compara com a cotação atual. |
+| Tema claro/escuro | Interface adaptada para uso em diferentes condições de leitura. |
 
-### 4. Triagem de Notícias
-- Classificação local por termos positivos e negativos.
-- Sem envio de texto para provedores de IA.
+## Arquitetura
 
-### 5. Backtesting
-- Estratégias fixas executadas sobre histórico real de preços.
-- IFR, cruzamento de médias móveis e rompimento de resistência.
-- Resultado financeiro, saldo final, taxa de sucesso e histórico de transações.
+```mermaid
+flowchart LR
+  UI["Interface Next.js"] --> Services["Camada de serviços"]
+  Services --> Brapi["Brapi: cotações e histórico"]
+  Services --> BCB["Banco Central: indicadores"]
+  Services --> Rules["Regras quantitativas"]
+  Rules --> UI
+```
 
-### 6. Alertas
-- Alertas de preço persistidos no navegador.
-- Validação contra cotação atual da API.
+## Stack
 
-## Tecnologias
+- Next.js 16 com App Router
+- React 18
+- TypeScript
+- Tailwind CSS
+- ShadCN UI e Radix UI
+- Recharts
+- Lucide React
+- Brapi para dados de mercado
+- Banco Central do Brasil para indicadores macroeconômicos
 
-- Next.js 15, React 18 e TypeScript.
-- Tailwind CSS e ShadCN UI.
-- Recharts.
-- Brapi para dados de mercado.
-- Banco Central do Brasil para indicadores macroeconômicos.
-
-## Configuração
+## Como Rodar Localmente
 
 ### Pré-requisitos
 
-- Node.js 20 ou superior.
-- npm.
+- Node.js 20 ou superior
+- npm
+- Chave da Brapi para dados reais
+
+### Instalação
+
+```bash
+npm install
+```
 
 ### Variáveis de ambiente
 
@@ -61,22 +68,46 @@ Crie um arquivo `.env` na raiz do projeto:
 BRAPI_API_KEY=sua-chave-de-api-aqui
 ```
 
-### Execução
+Sem essa variável, a aplicação usa dados demonstrativos locais.
+
+### Desenvolvimento
 
 ```bash
-npm install
 npm run dev
 ```
 
-A aplicação roda em `http://localhost:9002`.
+A aplicação fica disponível em:
+
+```text
+http://localhost:9002
+```
 
 ## Scripts
 
-- `npm run dev`: inicia o servidor de desenvolvimento.
-- `npm run build`: compila a aplicação para produção.
-- `npm run start`: inicia o servidor de produção após o build.
-- `npm run typecheck`: valida TypeScript.
+| Comando | Descrição |
+| --- | --- |
+| `npm run dev` | Inicia o servidor de desenvolvimento na porta 9002. |
+| `npm run build` | Gera a build de produção. |
+| `npm run start` | Inicia o servidor de produção após o build. |
+| `npm run typecheck` | Executa a validação TypeScript. |
 
-## Observação
+## Estrutura do Projeto
 
-As análises são informativas e baseadas em regras quantitativas simples. Elas não são recomendação individualizada de investimento.
+```text
+src/
+  app/              Rotas, layouts e APIs do Next.js
+  components/       Componentes de interface e módulos do painel
+  hooks/            Hooks compartilhados
+  lib/              Utilitários e tipos de domínio
+  services/         Integrações, cálculos e regras de negócio
+public/             Imagens e arquivos estáticos
+docs/               Documentação complementar
+```
+
+## Aviso
+
+As informações exibidas são apenas educativas e informativas. O projeto não fornece recomendação individualizada de investimento, consultoria financeira ou garantia de resultado.
+
+## Autor
+
+Desenvolvido por Daniel Barbieri, IronDev Software.
